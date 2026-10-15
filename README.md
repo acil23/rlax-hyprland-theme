@@ -54,8 +54,18 @@ bind = SUPER, R, exec, /home/aklein/Data/Rlax/customApp/target/debug/rlax-launch
 - Semua `Exec` desktop divalidasi, field code `%f/%F/%u/%U` di-strip
 - Launch tanpa shell: `hyprctl dispatch exec -- <sanitized>`
 
+### Phase 2 — Waybar Mighty Action X (DONE — restored & epic)
+- Backup `~/.config/waybar` sebelum ubah → `waybar.bak-20261015`
+- **Fix hilangnya**: Tanggal/Kalender (`clock` + `calendar` interactive), Memori (`memory`), Storage (`disk` 30s), Suhu (`temperature` hwmon7 coretemp)
+- **Config repo**: `configs/waybar/config` + `style.css` → deploy ke `~/.config/waybar`
+- Waybar `height 46` (min required), `layer top`, spacing 6, margin 8/14/14
+- Modules: `custom/gashat` (LEVEL 99) | `hyprland/workspaces` (1–10 + FINAL) | `clock` + `cpu` (HP) | `memory` (GAUGE) | `disk` (STORAGE) | `temperature` (TEMP) | `battery` (POWER) | `network` (LINK) | `pulseaudio` | `tray` | `custom/power`
+- Clock: `󰃭  {:%a %d %b  |  %H:%M:%S}` (single `{}` — waybar(fmt) cuma 1 block), `format-alt` tanggal panjang, `tooltip calendar` month/weekdays Ex-Aid colors, scroll month, click-right mode
+- Style epic: `window#waybar rgba(8,0,18,0.92) border #FF1493 1.5px radius 12px`, pill modules, Gashat gradient `#1A002A→#2a0044`, workspace active cyan glow, clock kuning `FFFF00`, `0 errors` log
+
 ## Roadmap
 - [x] rlax-launcher Gashat Ring epic
+- [x] Waybar Mighty Action X (calendar + mem + storage + suhu restored, Ex-Aid vibe)
 - [ ] rlax-clip (clipboard + grim/slurp)
 - [ ] rlax-files
 - [ ] rlax-monitor

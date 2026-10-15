@@ -1,0 +1,152 @@
+{
+    "layer": "top",
+    "position": "top",
+    "height": 46,
+    "margin-top": 8,
+    "margin-left": 14,
+    "margin-right": 14,
+    "spacing": 6,
+    "modules-left": [
+        "custom/gashat",
+        "hyprland/workspaces"
+    ],
+    "modules-center": [
+        "clock"
+    ],
+    "modules-right": [
+        "cpu",
+        "memory",
+        "disk",
+        "temperature",
+        "battery",
+        "network",
+        "pulseaudio",
+        "tray",
+        "custom/power"
+    ],
+    "custom/gashat": {
+        "format": "🎮  LEVEL 99",
+        "tooltip": false,
+        "on-click": "notify-send 'MIGHTY ACTION X!' 'Gashat inserted! Henshin! — Gachan! Level Up!' -u normal -i emblem-ok-symbolic"
+    },
+    "hyprland/workspaces": {
+        "disable-scroll": true,
+        "all-outputs": true,
+        "format": "{name}",
+        "format-icons": {
+            "1": "1",
+            "2": "2",
+            "3": "3",
+            "4": "4",
+            "5": "5",
+            "6": "6",
+            "7": "7",
+            "8": "8",
+            "9": "9",
+            "10": "10"
+        },
+        "on-click": "activate"
+    },
+    "clock": {
+        "format": "󰃭  {:%a %d %b  |  %H:%M:%S}",
+        "format-alt": "{:%A, %d %B %Y  —  %H:%M}",
+        "interval": 1,
+        "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
+        "calendar": {
+            "mode": "month",
+            "mode-mon-col": 3,
+            "weeks-pos": "right",
+            "on-scroll": 1,
+            "on-click-right": "mode",
+            "format": {
+                "months": "<span color='#FF1493'><b>{}</b></span>",
+                "days": "<span color='#e8e8ef'>{}</span>",
+                "weekdays": "<span color='#00FFFF'><b>{}</b></span>",
+                "today": "<span color='#FFFF00'><b><u>{}</u></b></span>"
+            }
+        },
+        "actions": {
+            "on-click-right": "mode",
+            "on-scroll-up": "shift_up",
+            "on-scroll-down": "shift_down"
+        }
+    },
+    "cpu": {
+        "format": "  HP: {usage}%",
+        "interval": 2,
+        "tooltip-format": "CPU: {usage}%  —  Load: {load}",
+        "on-click": "ghostty -e btop || kitty -e btop || alacritty -e btop"
+    },
+    "memory": {
+        "format": "󰍛  GAUGE: {percentage}%",
+        "interval": 2,
+        "tooltip-format": "RAM: {used:0.1f}G / {total:0.1f}G  ({percentage}%)\nSWAP: {swapUsed:0.1f}G / {swapTotal:0.1f}G",
+        "on-click": "ghostty -e btop || kitty -e btop || alacritty -e btop"
+    },
+    "disk": {
+        "interval": 30,
+        "format": "󰋊  STORAGE: {percentage_used}%",
+        "path": "/",
+        "tooltip-format": "Storage / : {used} / {total}  ({percentage_used}%)\nFree: {free}",
+        "on-click": "ghostty -e sh -c 'df -h; echo; read -p \"press enter...\" x' || kitty -e sh -c 'df -h; read'"
+    },
+    "temperature": {
+        "hwmon-path": "/sys/class/hwmon/hwmon7/temp1_input",
+        "critical-threshold": 80,
+        "interval": 5,
+        "format": "  TEMP: {temperatureC}°C",
+        "format-critical": "  TEMP: {temperatureC}°C  HOT!",
+        "tooltip-format": "CPU Package: {temperatureC}°C"
+    },
+    "battery": {
+        "states": {
+            "good": 95,
+            "warning": 30,
+            "critical": 15
+        },
+        "format": "󰁹  POWER: {capacity}%",
+        "format-charging": "⚡  CHARGING {capacity}%",
+        "format-plugged": "  POWER: {capacity}%",
+        "format-icons": [
+            "",
+            "",
+            "",
+            "",
+            ""
+        ],
+        "tooltip-format": "Battery: {capacity}%  —  {timeTo}\nPower: {power}W",
+        "on-click": "notify-send \"Battery\" \"$(upower -i /org/freedesktop/UPower/devices/battery_BAT0 2>/dev/null | head -n 30)\" -u low"
+    },
+    "network": {
+        "format-wifi": "  LINK: {essid} {signalStrength}%",
+        "format-ethernet": "  LINK: WIRED",
+        "format-disconnected": "LINK: OFFLINE",
+        "tooltip-format": "{ipaddr} via {gwaddr}",
+        "on-click": "ghostty -e nmtui || kitty -e nmtui || nm-connection-editor"
+    },
+    "pulseaudio": {
+        "format": "{volume}%  {icon}",
+        "format-muted": "MUTED  󰝟",
+        "format-bluetooth": "{volume}%   {icon}",
+        "format-icons": {
+            "default": [
+                "",
+                "",
+                ""
+            ]
+        },
+        "on-click": "pavucontrol",
+        "on-click-right": "wpctl set-mute @DEFAULT_SINK@ toggle",
+        "tooltip-format": "Volume: {volume}%\n{desc}"
+    },
+    "tray": {
+        "icon-size": 18,
+        "spacing": 8
+    },
+    "custom/power": {
+        "format": "",
+        "tooltip": "Power Menu — Gashacon Breaker!",
+        "on-click": "wlogout -b 6 || wlogout",
+        "on-click-right": "wlogout -b 6 || wlogout"
+    }
+}

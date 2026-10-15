@@ -1,0 +1,125 @@
+/* RLAX — MIGHTY ACTION X Waybar — EPIC Ex-Aid */
+* {
+    border: none;
+    border-radius: 0;
+    font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
+    font-size: 11px;
+    font-weight: 700;
+    min-height: 0;
+}
+window#waybar {
+    background: rgba(8, 0, 18, 0.92);
+    border: 1.5px solid rgba(255, 20, 147, 0.55);
+    border-radius: 12px;
+    box-shadow: 0 0 0 1px rgba(168, 80, 255, 0.18), 0 0 18px rgba(255, 20, 147, 0.22), 0 10px 28px rgba(0, 0, 0, 0.55);
+    color: #e8e8ef;
+}
+
+/* ——— LEFT: Gashat chip ——— */
+#custom-gashat {
+    background: linear-gradient(180deg, #1A002A 0%, #2a0044 100%);
+    color: #FF1493;
+    padding: 5px 12px;
+    margin: 5px 0 5px 8px;
+    border: 1px solid rgba(255, 20, 147, 0.55);
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(255, 20, 147, 0.35), inset 0 0 8px rgba(255, 20, 147, 0.08);
+    letter-spacing: 0.5px;
+}
+
+/* ——— Workspaces ——— */
+#workspaces {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 9px;
+    padding: 2px 4px;
+    margin: 5px 6px;
+}
+#workspaces button {
+    padding: 4px 10px;
+    margin: 2px 2px;
+    color: #9aa0b8;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    transition: all 0.2s ease;
+}
+#workspaces button.active {
+    background: linear-gradient(180deg, rgba(0, 255, 255, 0.18) 0%, rgba(0, 255, 255, 0.08) 100%);
+    color: #00FFFF;
+    border-color: rgba(0, 255, 255, 0.65);
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.35);
+}
+#workspaces button.urgent {
+    background: rgba(255, 20, 147, 0.22);
+    color: #FF6b9d;
+    border-color: rgba(255, 20, 147, 0.5);
+}
+#workspaces button:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #e8e8ef;
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* ——— Center: Clock ——— */
+#clock {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+    color: #FFFF00;
+    padding: 5px 18px;
+    margin: 5px 2px;
+    border: 1px solid rgba(255, 255, 0, 0.35);
+    border-radius: 9px;
+    box-shadow: 0 0 12px rgba(255, 255, 0, 0.18);
+    font-size: 12px;
+    letter-spacing: 1px;
+}
+#clock:hover { background: rgba(255, 255, 0, 0.12); }
+
+/* ——— Right pills ——— */
+#cpu, #memory, #disk, #temperature, #battery, #network, #pulseaudio, #tray, #backlight, #custom-power {
+    padding: 5px 11px;
+    margin: 5px 3px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 9px;
+}
+#cpu { color: #7fe8d8; }
+#memory { color: #8ad8ff; }
+#disk { color: #b8a0ff; }
+#temperature { color: #ffb86b; }
+#temperature.critical {
+    background: rgba(255, 20, 147, 0.18);
+    color: #FF6b9d;
+    border-color: rgba(255, 20, 147, 0.55);
+    animation: blink 1s linear infinite;
+}
+#battery { color: #7fff9e; }
+#battery.warning { background: rgba(255, 255, 0, 0.14); color: #FFFF00; border-color: rgba(255, 255, 0, 0.45); }
+#battery.critical { background: rgba(255, 20, 147, 0.18); color: #FF6b9d; border-color: rgba(255, 20, 147, 0.55); animation: blink 1s linear infinite; }
+#battery.charging { color: #FFFF00; border-color: rgba(255, 255, 0, 0.4); box-shadow: 0 0 10px rgba(255, 255, 0, 0.18); }
+#network { color: #00FFFF; }
+#network.disconnected { color: #FF1493; border-color: rgba(255, 20, 147, 0.35); }
+#pulseaudio { color: #a8d0ff; }
+#pulseaudio.muted { color: #9aa0b8; opacity: 0.75; }
+#tray { padding: 5px 8px; }
+#backlight { color: #ffdf6b; }
+
+#custom-power {
+    color: #FF1493;
+    background: rgba(255, 20, 147, 0.10);
+    border-color: rgba(255, 20, 147, 0.35);
+    padding: 5px 10px;
+    margin-right: 8px;
+    font-size: 13px;
+}
+#custom-power:hover { background: #FF1493; color: #000; box-shadow: 0 0 12px rgba(255, 20, 147, 0.55); }
+
+tooltip {
+    background: rgba(8, 0, 18, 0.96);
+    border: 1px solid rgba(255, 20, 147, 0.35);
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+tooltip label { color: #e8e8ef; padding: 6px; }
+
+@keyframes blink { 50% { opacity: 0.55; } }
