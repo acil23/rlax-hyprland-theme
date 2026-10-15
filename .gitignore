@@ -1,0 +1,10 @@
+/target
+**/target
+.idea/
+.vscode/
+*.swp
+*~
+# root raw uploads (keep only assets/exaid.png)
+exaid.jpeg
+exaid-removebg-preview.png
+Mighty_Action_X_Hyprland_Theme_Guide.docx

@@ -1,0 +1,20 @@
+[package]
+name = "rlax-launcher"
+version.workspace = true
+edition.workspace = true
+description = "Rlax Launcher - Fast app launcher for Hyprland (Wayland) using GTK4 + layer-shell"
+
+[[bin]]
+name = "rlax-launcher"
+path = "src/main.rs"
+
+[dependencies]
+gtk4 = { workspace = true, features = ["v4_12"] }
+gtk4-layer-shell.workspace = true
+glib.workspace = true
+gio.workspace = true
+gdk4.workspace = true
+pango.workspace = true
+rlax-ui = { path = "../../crates/rlax-ui" }
+rlax-hypr = { path = "../../crates/rlax-hypr" }
+rlax-security = { path = "../../crates/rlax-security" }
