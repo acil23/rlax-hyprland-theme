@@ -10,7 +10,7 @@ use std::process::Command;
 use std::rc::Rc;
 
 const APP_ID: &str = "tech.aklein.rlax-power-menu";
-const DEFAULT_BACKGROUND: &str = "/home/aklein/Data/Rlax/customApp/assets/power_menu.jpeg";
+const DEFAULT_BACKGROUND: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../../assets/power_menu.jpeg");
 const COUNTDOWN_SECONDS: u32 = 9;
 const ACTION_ROW_TOP: i32 = 430;
 
@@ -30,7 +30,16 @@ fn main() {
 }
 
 fn background_path() -> String {
-    std::env::var("RLAX_POWER_MENU_BACKGROUND").unwrap_or_else(|_| DEFAULT_BACKGROUND.to_owned())
+    if let Ok(path) = std::env::var("RLAX_POWER_MENU_BACKGROUND") {
+        return path;
+    }
+    let data_home = std::env::var_os("XDG_DATA_HOME")
+        .map(std::path::PathBuf::from)
+        .or_else(|| std::env::var_os("HOME").map(|home| std::path::PathBuf::from(home).join(".local/share")));
+    data_home.map(|p| p.join("rlax-theme/assets/power_menu.jpeg"))
+        .filter(|p| p.exists())
+        .map(|p| p.to_string_lossy().into_owned())
+        .unwrap_or_else(|| DEFAULT_BACKGROUND.to_owned())
 }
 
 fn build_ui(app: &Application) {

@@ -1,0 +1,159 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+usage() {
+  cat <<'EOF'
+Usage: scripts/install.sh [--all | --component NAME ...] [--dry-run] [--prefix PATH]
+
+Components: launcher, power-menu, osd, waybar, mako, hyprlock, sddm, font
+Default:   launcher, power-menu, osd, waybar, mako, hyprlock, font
+Options:
+  --all                 Include optional SDDM greeter theme
+  --component NAME      Install one or more components (repeatable)
+  --prefix PATH         Install under PATH (default: ~/.local)
+  --dry-run             Print planned file operations; do not build or write
+  -h, --help            Show this help
+
+The installer never edits Hyprland's main configuration. Optional integration
+snippets are installed under PREFIX/share/rlax-theme/hypr/ for manual inclusion.
+EOF
+}
+
+ROOT=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
+PREFIX=${HOME}/.local
+DRY_RUN=0
+COMPONENTS=()
+DEFAULT_COMPONENTS=(launcher power-menu osd waybar mako hyprlock font)
+
+while (($#)); do
+  case "$1" in
+    --all) COMPONENTS=("${DEFAULT_COMPONENTS[@]}" sddm); shift ;;
+    --component) (($# >= 2)) || { usage >&2; exit 2; }; COMPONENTS+=("$2"); shift 2 ;;
+    --prefix) (($# >= 2)) || { usage >&2; exit 2; }; PREFIX=$2; shift 2 ;;
+    --dry-run) DRY_RUN=1; shift ;;
+    -h|--help) usage; exit 0 ;;
+    *) echo "Unknown option: $1" >&2; usage >&2; exit 2 ;;
+  esac
+done
+((${#COMPONENTS[@]})) || COMPONENTS=("${DEFAULT_COMPONENTS[@]}")
+
+declare -A seen=()
+for component in "${COMPONENTS[@]}"; do
+  case "$component" in launcher|power-menu|osd|waybar|mako|hyprlock|sddm|font) ;;
+    *) echo "Unknown component: $component" >&2; exit 2;;
+  esac
+  [[ ${seen[$component]+yes} ]] && { echo "Duplicate component: $component" >&2; exit 2; }
+  seen[$component]=1
+done
+# The themed Waybar power button depends on the matching power-menu app.
+if [[ ${seen[waybar]+yes} ]]; then seen[power-menu]=1; fi
+
+DATA_HOME=${XDG_DATA_HOME:-$HOME/.local/share}
+CONFIG_HOME=${XDG_CONFIG_HOME:-$HOME/.config}
+BIN_DIR=$PREFIX/bin
+SHARE_DIR=$PREFIX/share/rlax-theme
+BACKUP_ROOT=$DATA_HOME/rlax-theme/backups/$(date +%Y%m%d-%H%M%S)-$$
+MANIFEST=$DATA_HOME/rlax-theme/installed-files
+BACKUP_INDEX=$DATA_HOME/rlax-theme/backups.tsv
+
+log() { printf '[rlax-theme] %s\n' "$*"; }
+run() { if ((DRY_RUN)); then printf 'DRY RUN:'; printf ' %q' "$@"; printf '\n'; else "$@"; fi; }
+install_file() {
+  local source=$1 destination=$2 mode=${3:-0644}
+  if ((DRY_RUN)); then log "would install $source -> $destination"; return; fi
+  mkdir -p "$(dirname -- "$destination")"
+  if [[ -f $MANIFEST ]] && grep -Fqx -- "$destination" "$MANIFEST"; then
+    : # Already owned by this installation; keep the original pre-install backup.
+  elif [[ -e $destination || -L $destination ]]; then
+    local backup="$BACKUP_ROOT/${destination#/}"
+    mkdir -p "$(dirname -- "$backup")"
+    cp -a -- "$destination" "$backup"
+    mkdir -p "$(dirname -- "$BACKUP_INDEX")"
+    printf '%s\t%s\n' "$destination" "$backup" >> "$BACKUP_INDEX"
+    log "backup: $destination -> $backup"
+  fi
+  install -m "$mode" -- "$source" "$destination"
+  mkdir -p "$(dirname -- "$MANIFEST")"
+  touch "$MANIFEST"
+  grep -Fqx -- "$destination" "$MANIFEST" || printf '%s\n' "$destination" >> "$MANIFEST"
+}
+need_command() { command -v "$1" >/dev/null || { echo "Missing required command: $1" >&2; exit 1; }; }
+
+if ((DRY_RUN)); then log "dry-run: prefix=$PREFIX components=${COMPONENTS[*]}"; fi
+
+needs_build=0
+[[ ${seen[launcher]+yes} || ${seen[power-menu]+yes} ]] && needs_build=1
+if ((needs_build)); then
+  need_command cargo
+  packages=()
+  [[ ${seen[launcher]+yes} ]] && packages+=(rlax-launcher)
+  [[ ${seen[power-menu]+yes} ]] && packages+=(rlax-power-menu)
+  if ((!DRY_RUN)); then
+    log "building release binaries: ${packages[*]}"
+    (cd "$ROOT" && cargo build --release --locked -p "${packages[@]}")
+  fi
+fi
+
+if [[ ${seen[launcher]+yes} ]]; then
+  install_file "$ROOT/target/release/rlax-launcher" "$BIN_DIR/rlax-launcher" 0755
+  install_file "$ROOT/assets/exaid.png" "$SHARE_DIR/assets/exaid.png"
+fi
+if [[ ${seen[power-menu]+yes} ]]; then
+  install_file "$ROOT/target/release/rlax-power-menu" "$BIN_DIR/rlax-power-menu" 0755
+  install_file "$ROOT/assets/power_menu.jpeg" "$SHARE_DIR/assets/power_menu.jpeg"
+fi
+if [[ ${seen[osd]+yes} ]]; then
+  need_command python3
+  python3 -c 'from PIL import Image' 2>/dev/null || { echo 'OSD requires Python Pillow (python-pillow on Arch).' >&2; exit 1; }
+  for file in osd-volume.sh osd-brightness.sh render-gashat-osd.py; do
+    install_file "$ROOT/scripts/$file" "$BIN_DIR/$file" 0755
+  done
+  install_file "$ROOT/assets/gashatExAid-removebg-preview.png" "$SHARE_DIR/assets/gashatExAid-removebg-preview.png"
+  install_file "$ROOT/assets/gashatGemn-removebg-preview.png" "$SHARE_DIR/assets/gashatGemn-removebg-preview.png"
+fi
+if [[ ${seen[waybar]+yes} ]]; then
+  install_file "$ROOT/configs/waybar/style.css" "$CONFIG_HOME/waybar/style.css"
+  local_config=$(mktemp)
+  python3 - "$ROOT/configs/waybar/config" "$local_config" "$BIN_DIR" <<'PY'
+import json, pathlib, sys
+source, output, bindir = sys.argv[1:]
+config = json.loads(pathlib.Path(source).read_text())
+config['temperature'].pop('hwmon-path', None)
+for module in ('cpu', 'memory'):
+    config[module]['on-click'] = 'foot -e btop || kitty -e btop || alacritty -e btop'
+config['network']['on-click'] = 'foot -e nmtui || kitty -e nmtui || nm-connection-editor'
+config['custom/power']['on-click'] = f'{bindir}/rlax-power-menu'
+config['custom/power']['on-click-right'] = f'{bindir}/rlax-power-menu'
+pathlib.Path(output).write_text(json.dumps(config, indent=4) + '\n')
+PY
+  install_file "$local_config" "$CONFIG_HOME/waybar/config" 0644
+  rm -f "$local_config"
+fi
+if [[ ${seen[mako]+yes} ]]; then install_file "$ROOT/configs/mako/config" "$CONFIG_HOME/mako/config"; fi
+if [[ ${seen[hyprlock]+yes} ]]; then
+  install_file "$ROOT/assets/login_background.jpeg" "$SHARE_DIR/assets/login_background.jpeg"
+  install_file "$ROOT/configs/hypr/rlax-theme.conf" "$SHARE_DIR/hypr/rlax-theme.conf"
+  local_config=$(mktemp)
+  sed "s|@RLAX_THEME_ASSETS@|$SHARE_DIR/assets|g" "$ROOT/configs/hypr/hyprlock.conf" > "$local_config"
+  install_file "$local_config" "$CONFIG_HOME/hypr/rlax-hyprlock.conf"
+  rm -f "$local_config"
+  log "hyprlock config installed separately at $CONFIG_HOME/hypr/rlax-hyprlock.conf; select it in your lock command if desired"
+fi
+if [[ ${seen[font]+yes} ]]; then
+  install_file "$ROOT/assets/fonts/PressStart2P-Regular.ttf" "$DATA_HOME/fonts/PressStart2P-Regular.ttf"
+  if command -v fc-cache >/dev/null && ((!DRY_RUN)); then fc-cache -f "$DATA_HOME/fonts" >/dev/null; fi
+fi
+if [[ ${seen[sddm]+yes} ]]; then
+  log "SDDM theme files are installed only in user data; system SDDM settings are not changed."
+  install_file "$ROOT/configs/sddm/rlax-gashat/Main.qml" "$SHARE_DIR/sddm/rlax-gashat/Main.qml"
+  install_file "$ROOT/configs/sddm/rlax-gashat/metadata.desktop" "$SHARE_DIR/sddm/rlax-gashat/metadata.desktop"
+  install_file "$ROOT/configs/sddm/rlax-gashat/login_background.jpeg" "$SHARE_DIR/sddm/rlax-gashat/login_background.jpeg"
+fi
+
+if ((!DRY_RUN)); then
+  [[ ${seen[hyprlock]+yes} ]] || install_file "$ROOT/configs/hypr/rlax-theme.conf" "$SHARE_DIR/hypr/rlax-theme.conf"
+  log "installation complete; optional Hyprland snippet: $SHARE_DIR/hypr/rlax-theme.conf"
+  log "backup directory: $BACKUP_ROOT"
+else
+  log 'dry-run complete; no files changed'
+fi

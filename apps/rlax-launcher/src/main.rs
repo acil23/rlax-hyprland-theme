@@ -6,7 +6,16 @@ use gtk4::{Application, ApplicationWindow, Box as GtkBox, Button, Fixed, Image, 
 use gtk4_layer_shell::{Edge, Layer, LayerShell};
 use rlax_security::{sanitize_query, strip_field_codes};
 const APP_ID: &str = "tech.aklein.rlax-launcher";
-const ASSET: &str = "/home/aklein/Data/Rlax/customApp/assets/exaid.png";
+const ASSET: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../../assets/exaid.png");
+fn installed_asset() -> String {
+    let data_home = std::env::var_os("XDG_DATA_HOME")
+        .map(std::path::PathBuf::from)
+        .or_else(|| std::env::var_os("HOME").map(|home| std::path::PathBuf::from(home).join(".local/share")));
+    data_home.map(|p| p.join("rlax-theme/assets/exaid.png"))
+        .filter(|p| p.exists())
+        .map(|p| p.to_string_lossy().into_owned())
+        .unwrap_or_else(|| ASSET.to_owned())
+}
 fn main(){ let app=Application::builder().application_id(APP_ID).build(); app.connect_activate(build_ui); app.run_with_args::<String>(&[]); }
 fn exists(p:&str)->bool{ std::path::Path::new(p).exists() }
 fn build_ui(app:&Application){
@@ -36,7 +45,8 @@ fn build_ui(app:&Application){
  // neon horizon tetap di kaki Ex-Aid (jangan ikut naik)
  let ring_outer=GtkBox::new(Orientation::Vertical,0); ring_outer.add_css_class("neon-ring"); ring_outer.set_size_request(720, 130); fixed.put(&ring_outer,340.0,415.0);
  let ring_inner=GtkBox::new(Orientation::Vertical,0); ring_inner.add_css_class("neon-ring-inner"); ring_inner.set_size_request(560, 90); fixed.put(&ring_inner,420.0,435.0);
- let pic: gtk4::Widget = if exists(ASSET) { let pp=Picture::for_filename(ASSET); pp.set_content_fit(gtk4::ContentFit::Contain); pp.set_size_request(410, 540); pp.set_can_shrink(true); pp.upcast() } else { let l=Label::new(Some("EX-AID")); l.add_css_class("henshin-title"); l.upcast() };
+ let asset = installed_asset();
+ let pic: gtk4::Widget = if exists(&asset) { let pp=Picture::for_filename(&asset); pp.set_content_fit(gtk4::ContentFit::Contain); pp.set_size_request(410, 540); pp.set_can_shrink(true); pp.upcast() } else { let l=Label::new(Some("EX-AID")); l.add_css_class("henshin-title"); l.upcast() };
  fixed.put(&pic,495.0,-10.0);
  let btn_left=Button::with_label("\u{25C0}"); btn_left.add_css_class("ring-arrow"); btn_left.set_focusable(false); btn_left.set_size_request(44,78); fixed.put(&btn_left,8.0,232.0);
  let btn_right=Button::with_label("\u{25B6}"); btn_right.add_css_class("ring-arrow"); btn_right.set_focusable(false); btn_right.set_size_request(44,78); fixed.put(&btn_right,1348.0,232.0);

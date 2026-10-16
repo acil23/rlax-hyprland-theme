@@ -13,9 +13,10 @@ brightness_percent=$(brightnessctl -m | awk -F, 'NR == 1 {gsub(/%/, "", $4); pri
   exit 1
 }
 
-repo="/home/aklein/Data/Rlax/customApp"
+script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+repo=$(cd -- "$script_dir/.." && pwd)
 icon="${XDG_RUNTIME_DIR:-/tmp}/rlax-brightness-gashat.png"
-python3 "$repo/scripts/render-gashat-osd.py" \
+python3 "$script_dir/render-gashat-osd.py" \
   --asset "$repo/assets/gashatGemn-removebg-preview.png" \
   --output "$icon" --percent "$brightness_percent" --label BRI \
   --bar '#D9C7FF'

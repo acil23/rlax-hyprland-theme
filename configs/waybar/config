@@ -148,14 +148,7 @@
     "custom/power": {
         "format": "",
         "tooltip": "Power Menu — Gashacon Breaker!",
-        "on-click": "/home/aklein/Data/Rlax/customApp/target/debug/rlax-power-menu",
-        "on-click-right": "/home/aklein/Data/Rlax/customApp/target/debug/rlax-power-menu"
-    },
-    "disk#vault": {
-        "interval": 30,
-        "path": "/home/aklein/Data",
-        "format": "󰉋 {free}",
-        "tooltip-format": "VAULT {used} / {total}  Free: {free} ({percentage_free}% free)",
-        "on-click": "thunar /home/aklein/Data || nautilus /home/aklein/Data || kitty -e sh -c 'ls -h /home/aklein/Data; read'"
+        "on-click": "rlax-power-menu",
+        "on-click-right": "rlax-power-menu"
     }
 }

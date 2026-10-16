@@ -1,81 +1,143 @@
-# Rlax Custom Apps — Arch + Hyprland (Kamen Rider Ex-Aid Theme)
+# Rlax Ex-Aid Hyprland Theme
 
-Monorepo aplikasi custom ringan, aman, dan Hyprland-native. Dibangun dengan **Rust + GTK4 + gtk4-layer-shell** — terinspirasi *Kamen Rider Ex-Aid Mighty Action X Gashat Ring*.
+A modular Kamen Rider Ex-Aid / Mighty Action X desktop theme for Hyprland. It includes GTK4 layer-shell launcher and power menu applications, Waybar and Mako styling, Gashat volume/brightness OSD scripts, an optional hyprlock theme, and an optional SDDM greeter theme.
 
-![Ex-Aid](assets/exaid.png)
+The installer is user-scoped by default (`~/.local` and `~/.config`), creates backups of replaced files, is safe to rerun, and never edits your main Hyprland configuration. Monitor, input, keybindings, autostart, and personal application settings remain yours.
 
-## ✨ Apa yang sudah dikerjakan sejauh ini
+## Components
 
-### Phase 0 — Foundation
-- Workspace Cargo (`resolver = "2"`, Rust 1.75, edition 2021, MIT)
-- `crates/rlax-ui` — design system shared (CSS provider, warna mighty: #FF1493 / #00FFFF / #1A002A)
-- `crates/rlax-hypr` — wrapper `hyprctl dispatch exec --` anti shell-injection
-- `crates/rlax-security` — `sanitize_query` (max 128 char, strip control char), `strip_field_codes`, `is_safe_exec`
-- `docs/SECURITY.md` — prinsip secure-by-default, memory-safety, Wayland isolation
+| Component | What it installs | Default? |
+|---|---|---:|
+| `launcher` | `rlax-launcher` and Ex-Aid artwork | Yes |
+| `power-menu` | `rlax-power-menu` and background artwork | Yes |
+| `osd` | Volume/brightness scripts, renderer and Gashat assets | Yes |
+| `waybar` | Ex-Aid Waybar config and CSS, adapted to the current user | Yes |
+| `mako` | Theme notification configuration | Yes |
+| `hyprlock` | Separate optional lock-screen config and background | Yes |
+| `font` | Press Start 2P user font | Yes |
+| `sddm` | Greeter theme files in user data only; does not change system SDDM | Only with `--all` |
 
-### Phase 1 — rlax-launcher (DONE, epic!)
-Launcher pengganti rofi/wofi, Wayland-native layer-shell:
-- Scan `*.desktop` via `load_apps()` + fuzzy filter `AppEntry::matches`
-- **UI Gashat Ring**: 9 kartu melingkar elips mengitari Ex-Aid (bukan bar lurus), perspektif 3D — depan `182×232` paling besar & tajam, belakang `122×154` kecil + `blur(2.5px) + desaturate` (depth-of-field)
-- **Ex-Aid center** `assets/exaid.png` (432×578 RGBA transparan) 410×540 Contain — `Picture` di `Fixed`, bukan background
-- Neon horizon ring `720×130` + `560×90` di kaki Ex-Aid (glow ungu/cyan)
-- Search `860px` centered `"🎮 GASHAT SELECT > Type to Henshin..."` + header `CHOOSE APPLICATION >`
-- Navigasi `←/→/↑/↓/Tab`, scroll, klik card (offset `rem_euclid`), `Enter` → animasi `Select! 620ms` → `rlax_hypr::launch_app` (tanpa shell)
-- **Iterasi desain epic** (dari feedback): hapus border kotak → fullscreen → centered `1460×740` overlay (layer-shell `anchor=false`), window rounded `18px` + glow, kartu transparan `0.38–0.92`, naik sejajar panah `◀ ▶` (Y 210–312), stage `rgba(5,0,14,0.96)`
-- Build `56M`, `cargo check 0.2s`, `153 apps loaded`
+## Requirements
 
-## Stack
-- Rust + GTK4 0.11 + gtk4-layer-shell 0.8 + gdk4/pango/glib/gio
-- Hyprland (Wayland), Arch Linux
+The app build needs Rust/Cargo, a C toolchain, GTK4 development files, and gtk4-layer-shell development files. On Arch Linux:
 
-## Struktur
-```
-apps/rlax-launcher    # launcher — DONE
-crates/rlax-ui        # theme epic fullscreen borderless
-crates/rlax-hypr      # hyprctl aman
-crates/rlax-security  # sanitasi
-assets/exaid.png      # 432×578 Ex-Aid transparan (center)
-```
-
-## Cara Jalan
 ```bash
-sudo pacman -S gtk4 gtk4-layer-shell
-cargo run -p rlax-launcher      # dev
-./target/debug/rlax-launcher    # release
+sudo pacman -S --needed base-devel rust cargo gtk4 gtk4-layer-shell pkgconf
 ```
 
-### Hyprland bind (SUPER+R)
+Runtime components used by the optional scripts/configuration:
+
+```bash
+sudo pacman -S --needed hyprland hyprlock waybar mako pipewire wireplumber brightnessctl libnotify python python-pillow
+```
+
+For icons, install a Nerd Font of your choice (the example configuration uses Nerd Font glyphs). OSD volume requires PipeWire/WirePlumber (`wpctl`); brightness OSD requires `brightnessctl`, a supported brightness device, `notify-send`, and Python Pillow. The launcher and power menu require a Wayland Hyprland session and GTK4 layer-shell support.
+
+Other distributions: install equivalent packages for GTK4, gtk4-layer-shell, Rust/Cargo, Waybar, Mako, hyprlock, PipeWire/WirePlumber, brightnessctl, libnotify and Pillow. Package names vary by distribution.
+
+## Install
+
+Clone the repository, then run the installer from its root:
+
+```bash
+git clone https://github.com/acil23/rlax-hyprland-theme.git
+cd rlax-hyprland-theme
+./scripts/install.sh
+```
+
+The default install builds the two Rust applications in release mode and installs them to `~/.local/bin`. Ensure that directory is on `PATH` (for example, add `export PATH="$HOME/.local/bin:$PATH"` to your shell profile and restart the session). User assets go to `~/.local/share/rlax-theme`; user configuration goes to `~/.config/waybar`, `~/.config/mako`, and as the separate `~/.config/hypr/rlax-hyprlock.conf` file.
+
+Use `--component` to select components. Components can be repeated:
+
+```bash
+./scripts/install.sh --component launcher --component font
+./scripts/install.sh --component osd
+./scripts/install.sh --all                    # includes SDDM files in user data
+./scripts/install.sh --dry-run                # show requested operations only
+./scripts/install.sh --prefix "$HOME/.local"  # explicit user install prefix
+```
+
+The `--all` SDDM option **does not** install to `/usr/share/sddm/themes`, select the theme, or alter your display manager. SDDM is system-wide and distribution-specific: manually copy the installed `share/rlax-theme/sddm/rlax-gashat` directory to the SDDM themes directory with administrator privileges, then select it in the SDDM configuration. Keep a recovery route and a known-working greeter before changing login-manager settings; a broken greeter can prevent graphical login.
+
+The installer backs up existing destination files under `$XDG_DATA_HOME/rlax-theme/backups/` (normally `~/.local/share/rlax-theme/backups/`) and records installed paths in a manifest. Re-running updates the files and keeps prior backups. It does not invoke `sudo`.
+
+## Hyprland integration (manual, non-destructive)
+
+The installer intentionally does not edit `hyprland.conf`, Lua modules, keybinds, autostart, monitor, or input configuration. Your `~/.local/bin` must be on Hyprland's `PATH` for commands below.
+
+### Optional visual settings
+
+Review `~/.local/share/rlax-theme/hypr/rlax-theme.conf`, then include it from your Hyprland configuration if you want its gaps, borders, shadow, blur, and animation defaults:
+
 ```ini
-bind = SUPER, R, exec, /home/aklein/Data/Rlax/customApp/target/debug/rlax-launcher
+source = ~/.local/share/rlax-theme/hypr/rlax-theme.conf
 ```
 
-## Security
-- `#![deny(unsafe_code)]` sebisa mungkin, `cargo audit`/`cargo deny` di CI (roadmap)
-- Semua `Exec` desktop divalidasi, field code `%f/%F/%u/%U` di-strip
-- Launch tanpa shell: `hyprctl dispatch exec -- <sanitized>`
+This is a sample appearance block; Hyprland may report duplicate settings if your existing config defines the same options. In that case, merge only the individual desired settings into your own appearance section rather than including the entire snippet.
 
-### Phase 2 — Waybar Mighty Action X (DONE — restored & epic)
-- Backup `~/.config/waybar` sebelum ubah → `waybar.bak-20261015`
-- **Fix hilangnya**: Tanggal/Kalender (`clock` + `calendar` interactive), Memori (`memory`), Storage (`disk` 30s), Suhu (`temperature` hwmon7 coretemp)
-- **Config repo**: `configs/waybar/config` + `style.css` → deploy ke `~/.config/waybar`
-- Waybar `height 46` (min required), `layer top`, spacing 6, margin 8/14/14
-- Modules: `custom/gashat` (LEVEL 99) | `hyprland/workspaces` (1–10 + FINAL) | `clock` + `cpu` (HP) | `memory` (GAUGE) | `disk` (STORAGE) | `temperature` (TEMP) | `battery` (POWER) | `network` (LINK) | `pulseaudio` | `tray` | `custom/power`
-- Clock: `󰃭  {:%a %d %b  |  %H:%M:%S}` (single `{}` — waybar(fmt) cuma 1 block), `format-alt` tanggal panjang, `tooltip calendar` month/weekdays Ex-Aid colors, scroll month, click-right mode
-- Style epic: `window#waybar rgba(8,0,18,0.92) border #FF1493 1.5px radius 12px`, pill modules, Gashat gradient `#1A002A→#2a0044`, workspace active cyan glow, clock kuning `FFFF00`, `0 errors` log
+### Launcher, power menu, and OSD keybinds
 
-### Phase 3 — Gashat Volume / Brightness OSD
-- Mako remains the notification daemon; no extra OSD service is added.
-- Volume notifications use `assets/gashatExAid-removebg-preview.png`; brightness uses `assets/gashatGemn-removebg-preview.png`.
-- `configs/mako/config` styles the OSDs with a dark translucent panel and matching pink/purple progress bars.
-- `scripts/osd-volume.sh` and `scripts/osd-brightness.sh` adjust the requested setting and send replaceable notifications. `scripts/render-gashat-osd.py` keeps the icon background transparent and draws the level bar inside the Gashat's LCD window. It requires Python Pillow (`python-pillow` on Arch).
-- The existing Hyprland hotkey wrapper scripts can forward to these repository scripts after installation/deployment.
+Choose free shortcuts and add only the corresponding commands to your existing keybind configuration. Do not replace your keybind file. Example Hyprland `hyprland.conf` syntax:
 
-## Roadmap
-- [x] rlax-launcher Gashat Ring epic
-- [x] Waybar Mighty Action X (calendar + mem + storage + suhu restored, Ex-Aid vibe)
-- [ ] rlax-clip (clipboard + grim/slurp)
-- [ ] rlax-files
-- [ ] rlax-monitor
+```ini
+bind = SUPER, R, exec, rlax-launcher
+bind = SUPER SHIFT, Q, exec, rlax-power-menu
+bindel = , XF86AudioRaiseVolume, exec, osd-volume.sh 5%+
+bindel = , XF86AudioLowerVolume, exec, osd-volume.sh 5%-
+bindl = , XF86AudioMute, exec, osd-volume.sh toggle
+bindel = , XF86MonBrightnessUp, exec, osd-brightness.sh 3%+
+bindel = , XF86MonBrightnessDown, exec, osd-brightness.sh 3%-
+```
 
----
-*Gashapon! Henshin! — Level Up!*
+If your Hyprland configuration is Lua-based, add equivalent `hl.bind(...)` entries to your own keybind module. Check that shortcuts are unused first. You can also test the applications directly from a terminal before binding them.
+
+### Waybar, Mako and lock screen
+
+The Waybar install adapts the repository example: it removes the machine-specific extra disk and hwmon sensor path, and uses the installed power-menu executable. Review the config for your machine (terminal names, network tools, audio controls and modules vary), then restart Waybar. Restart Mako after its configuration changes:
+
+```bash
+pkill waybar; waybar &
+makoctl reload
+```
+
+The hyprlock theme is installed as `~/.config/hypr/rlax-hyprlock.conf`. Test it manually with `hyprlock --config ~/.config/hypr/rlax-hyprlock.conf` before changing any lock key or idle handler. To make it the default, adjust only your existing lock command after confirming the test works. Keep a second terminal/session available when testing lock-screen changes.
+
+## Uninstall and rollback
+
+Run from the clone:
+
+```bash
+./scripts/uninstall.sh
+```
+
+The uninstaller removes files listed in the installer manifest and restores the most recently backed-up pre-install file where one exists. Backups are retained under `~/.local/share/rlax-theme/backups/` for manual recovery. It does not remove anything manually copied into system SDDM directories or change Hyprland keybinds you added yourself. Review the manifest before uninstalling if you have since customized installed Waybar/Mako files; restoring a backup replaces those files.
+
+## Build, test, and run from the clone
+
+```bash
+cargo build --release --locked -p rlax-launcher -p rlax-power-menu
+cargo test --workspace --locked
+cargo run -p rlax-launcher
+cargo run -p rlax-power-menu
+```
+
+## Repository layout
+
+```text
+apps/                 GTK4 layer-shell launcher and power menu
+assets/               Artwork and Press Start 2P font/license
+configs/hypr/         Optional theme and hyprlock snippets
+configs/mako/         Mako theme
+configs/sddm/         Optional SDDM greeter theme
+configs/waybar/       Waybar example theme
+crates/               Shared UI, Hyprland and security helpers
+scripts/              Installer, uninstaller and OSD helpers
+docs/SECURITY.md      Security notes
+```
+
+## Notes
+
+- OSD keybindings explicitly adjust the setting and then render/send a notification. They do not install a background service.
+- The power-menu countdown closes the menu at zero; it does not trigger a power action automatically.
+- SDDM installation is intentionally not automated because it is system-wide and can affect the ability to log in.
+- `scripts/revert-mighty.sh` and the old `scripts/hypr-bind.sh` were removed: they depended on a dated backup path or repository-specific absolute paths.

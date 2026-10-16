@@ -13,7 +13,7 @@ version = "0.1.0"
 edition = "2021"
 authors = ["Rlax <rlax@arch>"]
 license = "MIT"
-repository = "https://github.com/acil23/customApp"
+repository = "https://github.com/acil23/rlax-hyprland-theme"
 rust-version = "1.75"
 
 [workspace.dependencies]

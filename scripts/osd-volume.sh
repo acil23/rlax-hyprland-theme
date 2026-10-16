@@ -19,13 +19,14 @@ else
   body="${percent}%"
 fi
 
-repo="/home/aklein/Data/Rlax/customApp"
+script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+repo=$(cd -- "$script_dir/.." && pwd)
 icon="${XDG_RUNTIME_DIR:-/tmp}/rlax-volume-gashat.png"
 render_args=()
 if [[ "$volume_info" == *"[MUTED]"* ]]; then
   render_args+=(--muted)
 fi
-python3 "$repo/scripts/render-gashat-osd.py" \
+python3 "$script_dir/render-gashat-osd.py" \
   --asset "$repo/assets/gashatExAid-removebg-preview.png" \
   --output "$icon" --percent "$percent" --label VOL \
   --bar '#AFFF35' "${render_args[@]}"
