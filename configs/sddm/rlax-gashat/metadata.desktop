@@ -1,0 +1,11 @@
+[SddmGreeterTheme]
+Name=Rlax Mighty Action X
+Description=Ex-Aid Gashat themed SDDM login screen
+Author=Rlax
+License=MIT
+Type=sddm-theme
+Version=1.0
+MainScript=Main.qml
+Theme-Id=rlax-gashat
+Theme-API=2.0
+QtVersion=6

@@ -1,0 +1,16 @@
+[package]
+name = "rlax-power-menu"
+version.workspace = true
+edition.workspace = true
+description = "Gashat-themed Hyprland power menu"
+
+[[bin]]
+name = "rlax-power-menu"
+path = "src/main.rs"
+
+[dependencies]
+gtk4 = { workspace = true, features = ["v4_12"] }
+gtk4-layer-shell.workspace = true
+glib.workspace = true
+gio.workspace = true
+gdk4.workspace = true

@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "apps/rlax-launcher",
+    "apps/rlax-power-menu",
     "crates/rlax-ui",
     "crates/rlax-hypr",
     "crates/rlax-security",

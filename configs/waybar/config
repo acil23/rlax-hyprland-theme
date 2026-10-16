@@ -148,8 +148,8 @@
     "custom/power": {
         "format": "",
         "tooltip": "Power Menu — Gashacon Breaker!",
-        "on-click": "wlogout -b 6 || wlogout",
-        "on-click-right": "wlogout -b 6 || wlogout"
+        "on-click": "/home/aklein/Data/Rlax/customApp/target/debug/rlax-power-menu",
+        "on-click-right": "/home/aklein/Data/Rlax/customApp/target/debug/rlax-power-menu"
     },
     "disk#vault": {
         "interval": 30,
