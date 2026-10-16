@@ -90,7 +90,9 @@ if ((needs_build)); then
   [[ ${seen[power-menu]+yes} ]] && packages+=(rlax-power-menu)
   if ((!DRY_RUN)); then
     log "building release binaries: ${packages[*]}"
-    (cd "$ROOT" && cargo build --release --locked -p "${packages[@]}")
+    for package in "${packages[@]}"; do
+      (cd "$ROOT" && cargo build --release --locked -p "$package")
+    done
   fi
 fi
 
@@ -150,10 +152,67 @@ if [[ ${seen[sddm]+yes} ]]; then
   install_file "$ROOT/configs/sddm/rlax-gashat/login_background.jpeg" "$SHARE_DIR/sddm/rlax-gashat/login_background.jpeg"
 fi
 
+# Repair only known Rlax command references in the user's Lua config. Keep all
+# other bindings and settings intact, and backup each touched file once.
+if [[ -d "$CONFIG_HOME/hypr" && ( ${seen[launcher]+yes} || ${seen[power-menu]+yes} || ${seen[osd]+yes} || ${seen[hyprlock]+yes} ) ]]; then
+  for file in programs.lua keybinds.lua hyprlock.conf; do
+    config_file="$CONFIG_HOME/hypr/$file"
+    [[ -f $config_file ]] || continue
+    if grep -qE 'customApp|rlax-(launcher|power-menu)|osd-(volume|brightness)|login_background\.jpeg' "$config_file"; then
+      if ((DRY_RUN)); then
+          log "would update Rlax command references in $config_file (backup first)"
+      else
+        if ! grep -Fqx -- "$config_file" "$MANIFEST" 2>/dev/null; then
+          backup="$BACKUP_ROOT/${config_file#/}"
+          mkdir -p "$(dirname -- "$backup")" "$(dirname -- "$BACKUP_INDEX")"
+          cp -a -- "$config_file" "$backup"
+          printf '%s\t%s\n' "$config_file" "$backup" >> "$BACKUP_INDEX"
+          mkdir -p "$(dirname -- "$MANIFEST")"
+          touch "$MANIFEST"
+          printf '%s\n' "$config_file" >> "$MANIFEST"
+          log "backup: $config_file -> $backup"
+        fi
+        python3 - "$config_file" "$BIN_DIR" "$DATA_HOME" <<'PY'
+import pathlib
+import re
+import sys
+
+path = pathlib.Path(sys.argv[1])
+bin_dir = sys.argv[2]
+data_home = sys.argv[3]
+text = path.read_text()
+replacements = (
+    (r"[^\s\"']*/target/(?:debug|release)/rlax-launcher", f'{bin_dir}/rlax-launcher'),
+    (r"[^\s\"']*/target/(?:debug|release)/rlax-power-menu", f'{bin_dir}/rlax-power-menu'),
+    (r"[^\s\"']*/scripts/osd-volume\.sh", f'{bin_dir}/osd-volume.sh'),
+    (r"[^\s\"']*/scripts/osd-brightness\.sh", f'{bin_dir}/osd-brightness.sh'),
+    (r"[^\s\"']*/assets/login_background\.jpeg", f'{data_home}/rlax-theme/assets/login_background.jpeg'),
+)
+for pattern, replacement in replacements:
+    text = re.sub(pattern, lambda _: replacement, text)
+path.write_text(text)
+PY
+      fi
+    fi
+  done
+  if [[ ${seen[hyprlock]+yes} && -f "$CONFIG_HOME/hypr/hyprlock.conf" ]] && grep -q 'login_background.jpeg' "$CONFIG_HOME/hypr/hyprlock.conf"; then
+    log "updated hyprlock artwork reference in $CONFIG_HOME/hypr/hyprlock.conf"
+  fi
+  if [[ ${seen[launcher]+yes} && -f "$CONFIG_HOME/hypr/programs.lua" ]] && ! grep -q 'menu = .*rlax-launcher' "$CONFIG_HOME/hypr/programs.lua"; then
+          log "launcher command may need manual setting in $CONFIG_HOME/hypr/programs.lua"
+  fi
+fi
+
 if ((!DRY_RUN)); then
   [[ ${seen[hyprlock]+yes} ]] || install_file "$ROOT/configs/hypr/rlax-theme.conf" "$SHARE_DIR/hypr/rlax-theme.conf"
   log "installation complete; optional Hyprland snippet: $SHARE_DIR/hypr/rlax-theme.conf"
   log "backup directory: $BACKUP_ROOT"
+  if [[ -n ${HYPRLAND_INSTANCE_SIGNATURE:-} ]] && command -v hyprctl >/dev/null; then
+    log "reloading Hyprland configuration to activate repaired keybindings"
+    hyprctl reload || log "reload failed; run 'hyprctl reload' manually after resolving config errors"
+  else
+    log "run 'hyprctl reload' to activate repaired keybindings"
+  fi
 else
   log 'dry-run complete; no files changed'
 fi

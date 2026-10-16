@@ -2,7 +2,7 @@
 
 A modular Kamen Rider Ex-Aid / Mighty Action X desktop theme for Hyprland. It includes GTK4 layer-shell launcher and power menu applications, Waybar and Mako styling, Gashat volume/brightness OSD scripts, an optional hyprlock theme, and an optional SDDM greeter theme.
 
-The installer is user-scoped by default (`~/.local` and `~/.config`), creates backups of replaced files, is safe to rerun, and never edits your main Hyprland configuration. Monitor, input, keybindings, autostart, and personal application settings remain yours.
+The installer is user-scoped by default (`~/.local` and `~/.config`) and creates backups before replacing files. It does not replace your Hyprland configuration or personal settings. When an existing Hyprland Lua `programs.lua`/`keybinds.lua` contains known old Rlax paths, it backs up that file and updates only those Rlax command paths so the already-defined shortcuts keep working.
 
 ## Components
 
@@ -110,12 +110,13 @@ Run from the clone:
 ./scripts/uninstall.sh
 ```
 
-The uninstaller removes files listed in the installer manifest and restores the most recently backed-up pre-install file where one exists. Backups are retained under `~/.local/share/rlax-theme/backups/` for manual recovery. It does not remove anything manually copied into system SDDM directories or change Hyprland keybinds you added yourself. Review the manifest before uninstalling if you have since customized installed Waybar/Mako files; restoring a backup replaces those files.
+The uninstaller removes files listed in the installer manifest and restores their pre-install copies where available. Backups are retained under `~/.local/share/rlax-theme/backups/` for manual recovery. It does not remove anything manually copied into system SDDM directories. Review the manifest before uninstalling if you have since customized installed Waybar/Mako or Hyprland Lua files; restoring a backup replaces those files.
 
 ## Build, test, and run from the clone
 
 ```bash
-cargo build --release --locked -p rlax-launcher -p rlax-power-menu
+cargo build --release --locked -p rlax-launcher
+cargo build --release --locked -p rlax-power-menu
 cargo test --workspace --locked
 cargo run -p rlax-launcher
 cargo run -p rlax-power-menu

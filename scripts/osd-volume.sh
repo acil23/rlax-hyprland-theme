@@ -20,14 +20,14 @@ else
 fi
 
 script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
-repo=$(cd -- "$script_dir/.." && pwd)
+asset_dir="${XDG_DATA_HOME:-$HOME/.local/share}/rlax-theme/assets"
 icon="${XDG_RUNTIME_DIR:-/tmp}/rlax-volume-gashat.png"
 render_args=()
 if [[ "$volume_info" == *"[MUTED]"* ]]; then
   render_args+=(--muted)
 fi
 python3 "$script_dir/render-gashat-osd.py" \
-  --asset "$repo/assets/gashatExAid-removebg-preview.png" \
+  --asset "$asset_dir/gashatExAid-removebg-preview.png" \
   --output "$icon" --percent "$percent" --label VOL \
   --bar '#AFFF35' "${render_args[@]}"
 
