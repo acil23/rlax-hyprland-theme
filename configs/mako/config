@@ -1,0 +1,42 @@
+# Mighty Action X / Gashat OSD theme
+layer=overlay
+font=JetBrainsMono Nerd Font 10
+width=440
+height=112
+padding=8
+margin=18
+anchor=top-right
+border-size=1
+border-radius=10
+border-color=#7A315F
+background-color=#080812F2
+text-color=#F4F2FA
+default-timeout=1800
+ignore-timeout=true
+icons=1
+max-icon-size=64
+icon-location=left
+
+[app-name="Rlax Volume OSD"]
+width=250
+height=140
+padding=0
+border-size=0
+border-radius=0
+background-color=#00000000
+text-color=#00000000
+format=
+max-icon-size=240
+icon-location=left
+
+[app-name="Rlax Brightness OSD"]
+width=250
+height=140
+padding=0
+border-size=0
+border-radius=0
+background-color=#00000000
+text-color=#00000000
+format=
+max-icon-size=240
+icon-location=left

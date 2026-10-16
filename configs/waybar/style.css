@@ -75,14 +75,19 @@ window#waybar {
 }
 #clock:hover { background: rgba(255, 255, 0, 0.12); }
 
-/* ——— Right pills ——— */
-#cpu, #memory, #disk, #temperature, #battery, #network, #pulseaudio, #tray, #backlight, #custom-power {
+/* ——— Center perfectly ——— */
+.modules-center { margin: 0; }
+
+/* ——— Right pills — unified ——— */
+#cpu, #memory, #disk, #disk-vault, #temperature, #battery, #network, #pulseaudio, #tray, #backlight, #custom-power {
     padding: 5px 11px;
     margin: 5px 3px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 9px;
 }
+/* also catch GTK id with literal # in selector */
+#disk-vault, #disk { }
 #cpu { color: #7fe8d8; }
 #memory { color: #8ad8ff; }
 #disk { color: #b8a0ff; }
@@ -123,3 +128,6 @@ tooltip {
 tooltip label { color: #e8e8ef; padding: 6px; }
 
 @keyframes blink { 50% { opacity: 0.55; } }
+
+/* vault fallback — ensure not unstyled */
+#disk, #disk-vault { padding: 5px 11px; margin: 5px 3px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 9px; color: #b8a0ff; }

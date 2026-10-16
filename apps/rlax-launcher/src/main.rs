@@ -1,5 +1,5 @@
 mod desktop;
-use desktop::{AppEntry, load_apps};
+use desktop::{AppEntry, UsageStore, load_apps};
 use gdk4::Key;
 use gtk4::prelude::*;
 use gtk4::{Application, ApplicationWindow, Box as GtkBox, Button, Fixed, Image, Label, Orientation, Overlay, Picture, SearchEntry};
@@ -10,7 +10,10 @@ const ASSET: &str = "/home/aklein/Data/Rlax/customApp/assets/exaid.png";
 fn main(){ let app=Application::builder().application_id(APP_ID).build(); app.connect_activate(build_ui); app.run_with_args::<String>(&[]); }
 fn exists(p:&str)->bool{ std::path::Path::new(p).exists() }
 fn build_ui(app:&Application){
- let apps:Vec<AppEntry>=load_apps(); eprintln!("[rlax-launcher] loaded {} apps", apps.len()); rlax_ui::apply_rlax_theme();
+ let usage_store=UsageStore::load_default();
+ let mut apps:Vec<AppEntry>=load_apps();
+ usage_store.sort_apps(&mut apps);
+ eprintln!("[rlax-launcher] loaded {} apps (ranked by launch frequency)", apps.len()); rlax_ui::apply_rlax_theme();
  let window=ApplicationWindow::builder().application(app).title("RLAX HENSHIN").decorated(false).resizable(false).build();
  // Centered epic — NOT fullscreen (user: terlalu fullscreen). Fixed 1460x740 centered overlay
  window.set_default_size(1460, 740); window.set_size_request(1460, 740);
@@ -58,7 +61,7 @@ fn build_ui(app:&Application){
  select_box.append(&select_icon); select_box.append(&select_label); select_box.append(&select_sub); select_box.append(&select_app); overlay.add_overlay(&select_box);
  window.set_child(Some(&overlay));
  use std::cell::{Cell,RefCell}; use std::rc::Rc;
- let apps_rc=Rc::new(apps); let filtered:Rc<RefCell<Vec<AppEntry>>>=Rc::new(RefCell::new(Vec::new())); let selected:Rc<Cell<usize>>=Rc::new(Cell::new(0)); let selecting:Rc<Cell<bool>>=Rc::new(Cell::new(false));
+ let apps_rc=Rc::new(apps); let usage=Rc::new(RefCell::new(usage_store)); let filtered:Rc<RefCell<Vec<AppEntry>>>=Rc::new(RefCell::new(Vec::new())); let selected:Rc<Cell<usize>>=Rc::new(Cell::new(0)); let selecting:Rc<Cell<bool>>=Rc::new(Cell::new(false));
  let build_card=|btn:&Button, entry:Option<&AppEntry>, is_sel:bool, dim:&str|{
   if let Some(ch)=btn.child(){ btn.set_child(None::<&gtk4::Widget>); let _=ch; }
   btn.remove_css_class("selected"); btn.remove_css_class("dimmed"); btn.remove_css_class("semi"); btn.remove_css_class("ghost");
@@ -89,11 +92,11 @@ fn build_ui(app:&Application){
   })
  };
  let do_select={
-  let filtered=filtered.clone(); let selected=selected.clone(); let window=window.clone(); let selecting=selecting.clone(); let select_box=select_box.clone(); let select_app=select_app.clone(); let select_icon=select_icon.clone();
+  let filtered=filtered.clone(); let selected=selected.clone(); let window=window.clone(); let selecting=selecting.clone(); let select_box=select_box.clone(); let select_app=select_app.clone(); let select_icon=select_icon.clone(); let usage=usage.clone();
   move||{
    if selecting.get(){return;} let list=filtered.borrow(); if list.is_empty(){return;} let sel=selected.get().min(list.len()-1); let Some(e)=list.get(sel).cloned() else {return;};
    selecting.set(true); select_app.set_text(&e.name); if let Some(ic)=&e.icon{ select_icon.set_icon_name(Some(ic.as_str())); } select_box.set_visible(true);
-   let w2=window.clone(); let e2=e.clone(); glib::timeout_add_local_once(std::time::Duration::from_millis(620), move||{ let exec=strip_field_codes(&e2.exec); eprintln!("[rlax-launcher] HENSHIN! {} -> {}", e2.name, exec); match rlax_hypr::launch_app(&exec){ Ok(_)=>w2.close(), Err(er)=>{eprintln!("[rlax] launch failed: {}",er); w2.close();}} });
+   let w2=window.clone(); let e2=e.clone(); let usage2=usage.clone(); glib::timeout_add_local_once(std::time::Duration::from_millis(620), move||{ let exec=strip_field_codes(&e2.exec); eprintln!("[rlax-launcher] HENSHIN! {} -> {}", e2.name, exec); match rlax_hypr::launch_app(&exec){ Ok(_)=>{ if let Err(er)=usage2.borrow_mut().record_launch(&e2){ eprintln!("[rlax-launcher] could not save usage history: {er}"); } w2.close(); }, Err(er)=>{eprintln!("[rlax] launch failed: {}",er); w2.close();}} });
   }
  };
  let populate={

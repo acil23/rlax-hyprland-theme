@@ -17,6 +17,7 @@
         "cpu",
         "memory",
         "disk",
+        "disk#vault",
         "temperature",
         "battery",
         "network",
@@ -45,7 +46,8 @@
             "9": "9",
             "10": "10"
         },
-        "on-click": "activate"
+        "on-click": "activate",
+        "sort-by": "number"
     },
     "clock": {
         "format": "󰃭  {:%a %d %b  |  %H:%M:%S}",
@@ -72,22 +74,22 @@
         }
     },
     "cpu": {
-        "format": "  HP: {usage}%",
         "interval": 2,
+        "format": " {usage}%",
         "tooltip-format": "CPU: {usage}%  —  Load: {load}",
         "on-click": "ghostty -e btop || kitty -e btop || alacritty -e btop"
     },
     "memory": {
-        "format": "󰍛  GAUGE: {percentage}%",
         "interval": 2,
+        "format": "󰍛 {percentage}%",
         "tooltip-format": "RAM: {used:0.1f}G / {total:0.1f}G  ({percentage}%)\nSWAP: {swapUsed:0.1f}G / {swapTotal:0.1f}G",
         "on-click": "ghostty -e btop || kitty -e btop || alacritty -e btop"
     },
     "disk": {
         "interval": 30,
-        "format": "󰋊  STORAGE: {percentage_used}%",
         "path": "/",
-        "tooltip-format": "Storage / : {used} / {total}  ({percentage_used}%)\nFree: {free}",
+        "format": "󰋊 {free}",
+        "tooltip-format": "ROOT {used} / {total}  Free: {free} ({percentage_free}% free)",
         "on-click": "ghostty -e sh -c 'df -h; echo; read -p \"press enter...\" x' || kitty -e sh -c 'df -h; read'"
     },
     "temperature": {
@@ -104,9 +106,9 @@
             "warning": 30,
             "critical": 15
         },
-        "format": "󰁹  POWER: {capacity}%",
-        "format-charging": "⚡  CHARGING {capacity}%",
-        "format-plugged": "  POWER: {capacity}%",
+        "format": "{icon} {capacity}%",
+        "format-charging": "⚡ {capacity}%",
+        "format-plugged": " {capacity}%",
         "format-icons": [
             "",
             "",
@@ -118,15 +120,15 @@
         "on-click": "notify-send \"Battery\" \"$(upower -i /org/freedesktop/UPower/devices/battery_BAT0 2>/dev/null | head -n 30)\" -u low"
     },
     "network": {
-        "format-wifi": "  LINK: {essid} {signalStrength}%",
-        "format-ethernet": "  LINK: WIRED",
-        "format-disconnected": "LINK: OFFLINE",
-        "tooltip-format": "{ipaddr} via {gwaddr}",
+        "format-wifi": " {signalStrength}%",
+        "format-ethernet": " Wired",
+        "format-disconnected": "󰖪 Offline",
+        "tooltip-format": "{ipaddr} via {gwaddr}  —  {essid}",
         "on-click": "ghostty -e nmtui || kitty -e nmtui || nm-connection-editor"
     },
     "pulseaudio": {
-        "format": "{volume}%  {icon}",
-        "format-muted": "MUTED  󰝟",
+        "format": "{icon} {volume}%",
+        "format-muted": "󰝟 Muted",
         "format-bluetooth": "{volume}%   {icon}",
         "format-icons": {
             "default": [
@@ -148,5 +150,12 @@
         "tooltip": "Power Menu — Gashacon Breaker!",
         "on-click": "wlogout -b 6 || wlogout",
         "on-click-right": "wlogout -b 6 || wlogout"
+    },
+    "disk#vault": {
+        "interval": 30,
+        "path": "/home/aklein/Data",
+        "format": "󰉋 {free}",
+        "tooltip-format": "VAULT {used} / {total}  Free: {free} ({percentage_free}% free)",
+        "on-click": "thunar /home/aklein/Data || nautilus /home/aklein/Data || kitty -e sh -c 'ls -h /home/aklein/Data; read'"
     }
 }

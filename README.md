@@ -63,6 +63,13 @@ bind = SUPER, R, exec, /home/aklein/Data/Rlax/customApp/target/debug/rlax-launch
 - Clock: `󰃭  {:%a %d %b  |  %H:%M:%S}` (single `{}` — waybar(fmt) cuma 1 block), `format-alt` tanggal panjang, `tooltip calendar` month/weekdays Ex-Aid colors, scroll month, click-right mode
 - Style epic: `window#waybar rgba(8,0,18,0.92) border #FF1493 1.5px radius 12px`, pill modules, Gashat gradient `#1A002A→#2a0044`, workspace active cyan glow, clock kuning `FFFF00`, `0 errors` log
 
+### Phase 3 — Gashat Volume / Brightness OSD
+- Mako remains the notification daemon; no extra OSD service is added.
+- Volume notifications use `assets/gashatExAid-removebg-preview.png`; brightness uses `assets/gashatGemn-removebg-preview.png`.
+- `configs/mako/config` styles the OSDs with a dark translucent panel and matching pink/purple progress bars.
+- `scripts/osd-volume.sh` and `scripts/osd-brightness.sh` adjust the requested setting and send replaceable notifications. `scripts/render-gashat-osd.py` keeps the icon background transparent and draws the level bar inside the Gashat's LCD window. It requires Python Pillow (`python-pillow` on Arch).
+- The existing Hyprland hotkey wrapper scripts can forward to these repository scripts after installation/deployment.
+
 ## Roadmap
 - [x] rlax-launcher Gashat Ring epic
 - [x] Waybar Mighty Action X (calendar + mem + storage + suhu restored, Ex-Aid vibe)
